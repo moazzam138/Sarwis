@@ -22,6 +22,8 @@ import { useToast } from "@/hooks/use-toast";
 import { QRDisplay } from "@/components/qr-display";
 import { Dashboard } from "@/components/dashboard";
 import { BinLid } from "@/components/icons";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 type State = {
   step: DepositStep;
@@ -128,6 +130,7 @@ export default function Home() {
   } = useArduino();
   const [lastDeposit, setLastDeposit] = useState<DepositResult | null>(null);
   const [errorLog, setErrorLog] = useState<string[]>([]);
+  const [isDeveloperMode, setIsDeveloperMode] = useState(false);
 
   useEffect(() => {
     if (arduinoError) {
@@ -367,14 +370,20 @@ export default function Home() {
           <h1 className="text-xl font-bold">Sarwis Control Panel</h1>
         </div>
         <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            onClick={handleGenerateTestQr}
-            disabled={!['IDLE', 'WAITING_FOR_WASTE', 'ERROR', 'TIMEOUT'].includes(state.step)}
-          >
-            <TestTube2 />
-            Generate Test QR
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Switch id="developer-mode" checked={isDeveloperMode} onCheckedChange={setIsDeveloperMode} />
+            <Label htmlFor="developer-mode" className="text-sm hidden sm:block">Developer Mode</Label>
+          </div>
+          {isDeveloperMode && (
+             <Button
+              variant="outline"
+              onClick={handleGenerateTestQr}
+              disabled={!['IDLE', 'WAITING_FOR_WASTE', 'ERROR', 'TIMEOUT'].includes(state.step)}
+            >
+              <TestTube2 />
+              Generate Test QR
+            </Button>
+          )}
           <Badge
             variant={isConnected ? "default" : "destructive"}
             className="hidden sm:flex"
