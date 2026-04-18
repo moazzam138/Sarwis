@@ -9,9 +9,10 @@ interface UseArduinoReturn {
   sendCommand: (command: string) => void;
   isConnected: boolean;
   weight: number;
-  irStatus: 'Ready' | 'Triggered';
   lastMessage: string;
   error: string | null;
+  lastArduinoEvent: string | null;
+  clearLastArduinoEvent: () => void;
 }
 
 export function useArduino(): UseArduinoReturn {
@@ -20,9 +21,13 @@ export function useArduino(): UseArduinoReturn {
   const writerRef = useRef<WritableStreamDefaultWriter | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [weight, setWeight] = useState(0);
-  const [irStatus, setIrStatus] = useState<'Ready' | 'Triggered'>('Ready');
   const [lastMessage, setLastMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [lastArduinoEvent, setLastArduinoEvent] = useState<string | null>(null);
+
+  const clearLastArduinoEvent = useCallback(() => {
+    setLastArduinoEvent(null);
+  }, []);
 
   const connect = useCallback(async () => {
     if (!navigator.serial) {
@@ -114,12 +119,8 @@ export function useArduino(): UseArduinoReturn {
                 if (!isNaN(newWeight)) {
                   setWeight(newWeight);
                 }
-              } else if (trimmedLine === 'WASTE_DETECTED') {
-                setIrStatus('Triggered');
-                // Reset IR status after a short delay to allow for re-triggering
-                setTimeout(() => setIrStatus('Ready'), 2000);
-              } else {
-                // Handle other messages like LID_OPENED, LID_CLOSED if needed
+              } else if (['WASTE_DETECTED', 'LID_OPENED', 'LID_CLOSED'].includes(trimmedLine)) {
+                setLastArduinoEvent(trimmedLine);
               }
             }
           }
@@ -148,5 +149,5 @@ export function useArduino(): UseArduinoReturn {
     };
   }, [isConnected, port, disconnect]);
 
-  return { connect, disconnect, sendCommand, isConnected, weight, irStatus, lastMessage, error };
+  return { connect, disconnect, sendCommand, isConnected, weight, lastMessage, error, lastArduinoEvent, clearLastArduinoEvent };
 }

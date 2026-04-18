@@ -6,8 +6,7 @@ import {
   AlertTriangle,
   CircleDot,
   Weight,
-  Thermometer,
-  Cloud,
+  Settings,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,19 +23,25 @@ export function Dashboard({ status, lastDeposit, errorLog }: DashboardProps) {
   const statusItems = [
     {
       icon: Cpu,
-      label: "System Health",
-      value: status.isConnected ? "Online" : "Offline",
+      label: "Arduino",
+      value: status.isConnected ? "Connected" : "Disconnected",
       variant: status.isConnected ? "default" : "destructive",
+    },
+    {
+      icon: Settings,
+      label: "Status",
+      value: status.machineState.replace(/_/g, " "),
+      variant: "secondary",
     },
     {
       icon: CircleDot,
       label: "IR Sensor",
       value: status.irStatus,
-      variant: status.irStatus === "Triggered" ? "secondary" : "default",
+      variant: status.irStatus === "Triggered" ? "default" : "secondary",
     },
     {
       icon: Weight,
-      label: "Current Weight",
+      label: "Weight",
       value: `${status.weight} g`,
     },
   ];
@@ -82,7 +87,7 @@ export function Dashboard({ status, lastDeposit, errorLog }: DashboardProps) {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Weight:</span>
-                <span>{lastDeposit.weight} g</span>
+                <span>{lastDeposit.weight.toFixed(0)} g</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Coins Earned:</span>
