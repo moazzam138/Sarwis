@@ -38,9 +38,9 @@ export function QRDisplay({ result, onDone }: QRDisplayProps) {
       <div className="flex flex-col items-center gap-2">
         <CheckCircle className="h-12 w-12 text-green-500" />
         <h2 className="text-3xl font-bold">Deposit Successful!</h2>
-        <p className="text-muted-foreground">
-          Scan the QR code with the Sarwis mobile app to claim your coins.
-        </p>
+        <h3 className="text-xl text-muted-foreground">
+          Scan to Claim Reward
+        </h3>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
@@ -69,7 +69,7 @@ export function QRDisplay({ result, onDone }: QRDisplayProps) {
                     </div>
                      <div className="flex justify-between items-center text-lg">
                         <div className="flex items-center gap-2 text-muted-foreground"><Weight className="h-5 w-5"/> Weight</div>
-                        <span className="font-bold">{weight} g</span>
+                        <span className="font-bold">{weight.toFixed(0)} g</span>
                     </div>
                      <p className="text-xs text-muted-foreground text-center pt-2">ID: {transactionId}</p>
                 </CardContent>
