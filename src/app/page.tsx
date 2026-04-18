@@ -10,13 +10,14 @@ import {
   RefreshCw,
   Wind,
   Loader,
+  TestTube2,
 } from "lucide-react";
 import { useArduino } from "@/hooks/use-arduino";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { DepositStep, DepositResult, ArduinoStatus } from "@/lib/types";
-import { processDeposit } from "@/app/actions";
+import { processDeposit, generateTestQr } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 import { QRDisplay } from "@/components/qr-display";
 import { Dashboard } from "@/components/dashboard";
@@ -147,6 +148,18 @@ export default function Home() {
     }
   }, [state.error, toast]);
 
+  const handleGenerateTestQr = async () => {
+    dispatch({ type: "SET_STEP", payload: "GENERATING_QR" });
+    try {
+        const result = await generateTestQr();
+        dispatch({ type: "QR_GENERATION_SUCCESS", payload: result });
+        setLastDeposit(result);
+    } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : "Failed to generate test QR code.";
+        dispatch({ type: "QR_GENERATION_FAIL", payload: errorMsg });
+    }
+  };
+
   const handleConnect = async () => {
     dispatch({ type: "CONNECT_START" });
     try {
@@ -194,16 +207,19 @@ export default function Home() {
       dispatch({ type: "SET_STEP", payload: "CLOSING_LID" });
     } else if (state.step === "GENERATING_QR") {
       const depositedWeight = weight - state.weightAtDetection;
-      processDeposit(depositedWeight > 20 ? depositedWeight : 250) // Use dummy weight if something is wrong
-        .then((result) => {
-          dispatch({ type: "QR_GENERATION_SUCCESS", payload: result });
-          setLastDeposit(result);
-        })
-        .catch((err) => {
-          const errorMsg =
-            err instanceof Error ? err.message : "Failed to generate QR code.";
-          dispatch({ type: "QR_GENERATION_FAIL", payload: errorMsg });
-        });
+      // This check ensures we don't call processDeposit when generating a test QR
+      if (state.weightAtDetection > 0 || depositedWeight > 20) {
+        processDeposit(depositedWeight > 20 ? depositedWeight : 250) // Use dummy weight if something is wrong
+          .then((result) => {
+            dispatch({ type: "QR_GENERATION_SUCCESS", payload: result });
+            setLastDeposit(result);
+          })
+          .catch((err) => {
+            const errorMsg =
+              err instanceof Error ? err.message : "Failed to generate QR code.";
+            dispatch({ type: "QR_GENERATION_FAIL", payload: errorMsg });
+          });
+      }
     }
 
     // --- Handle weight changes for deposit detection ---
@@ -351,6 +367,14 @@ export default function Home() {
           <h1 className="text-xl font-bold">Sarwis Control Panel</h1>
         </div>
         <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            onClick={handleGenerateTestQr}
+            disabled={!['IDLE', 'WAITING_FOR_WASTE', 'ERROR', 'TIMEOUT'].includes(state.step)}
+          >
+            <TestTube2 />
+            Generate Test QR
+          </Button>
           <Badge
             variant={isConnected ? "default" : "destructive"}
             className="hidden sm:flex"
@@ -376,7 +400,7 @@ export default function Home() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           <Card className="flex items-center justify-center lg:col-span-2 min-h-[60vh]">
             <CardContent className="p-6 w-full">
-              {isConnected ? (
+              {isConnected || ['SHOW_QR', 'GENERATING_QR'].includes(state.step) ? (
                 renderWorkflowContent()
               ) : (
                 <div className="text-center">
