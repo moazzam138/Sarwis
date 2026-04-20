@@ -1,4 +1,18 @@
 "use client";
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB_MM3HSRv8KoyTs5THqjd6TrnMZjSwnYA",
+  authDomain: "studio-8518113056-71790.firebaseapp.com",
+  projectId: "studio-8518113056-71790",
+  storageBucket: "studio-8518113056-71790.firebasestorage.app",
+  messagingSenderId: "934801290952",
+  appId: "1:934801290952:web:38b18cd4ca0853823817fd"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 import { useState, useEffect, useCallback, useReducer } from "react";
 import {

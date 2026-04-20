@@ -64,7 +64,7 @@ export async function generateTestQr(): Promise<DepositResult> {
   console.log(`Processing test QR generation`);
 
   try {
-    const testWeight = 200;
+    const testWeight = 50;
     const testCoins = 5;
     const transactionId = `SARWIS_TXN_${Math.random()
       .toString(36)
@@ -102,7 +102,7 @@ export async function generateTestQr(): Promise<DepositResult> {
       qrCode: '',
       transactionId: 'ERROR',
       coinsAwarded: 0,
-      weight: 200,
+      weight: 50,
       insight:
         'Could not generate an insight at this time. But every piece of recycled waste helps our planet!',
     };
