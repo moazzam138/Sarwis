@@ -3,6 +3,8 @@
 import { generateEnvironmentalInsight } from '@/ai/flows/generate-environmental-insight';
 import type { DepositResult } from '@/lib/types';
 import QRCode from 'qrcode';
+import { db } from '@/firebase';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 async function generateQrDataUrl(payload: object): Promise<string> {
   try {
@@ -29,6 +31,20 @@ export async function processDeposit(weight: number): Promise<DepositResult> {
       weight,
       timestamp,
     };
+
+    try {
+      await addDoc(collection(db, 'sarwis_transactions'), {
+        transactionId: transactionId,
+        coins: coinsAwarded,
+        weight: weight,
+        timestamp: serverTimestamp(),
+        machineId: 'SARWIS-001',
+        status: 'unused',
+      });
+    } catch (e) {
+      console.error('Firestore save error:', e);
+      // Non-blocking, log and continue
+    }
 
     const qrCode = await generateQrDataUrl(qrPayload);
 
@@ -79,6 +95,20 @@ export async function generateTestQr(): Promise<DepositResult> {
       weight: testWeight,
       timestamp: timestamp
     };
+
+    try {
+      await addDoc(collection(db, 'sarwis_transactions'), {
+        transactionId: transactionId,
+        coins: testCoins,
+        weight: testWeight,
+        timestamp: serverTimestamp(),
+        machineId: 'SARWIS-001-TEST',
+        status: 'unused',
+      });
+    } catch (e) {
+      console.error('Firestore save error:', e);
+      // Non-blocking, log and continue
+    }
 
     const qrCode = await generateQrDataUrl(qrPayload);
 
