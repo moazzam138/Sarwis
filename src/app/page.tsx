@@ -1,6 +1,7 @@
 "use client";
-
 import { useState, useEffect, useCallback, useReducer } from "react";
+import { db } from "@/firebase";
+import { collection, onSnapshot } from "firebase/firestore";
 import {
   Zap,
   ZapOff,
@@ -194,6 +195,20 @@ export default function Home() {
   }, [isConnected]);
 
   // Main workflow logic driven by useEffect for state changes and events
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, "sarwis_transactions"),
+      (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === "added") {
+            console.log("New QR:", change.doc.data());
+          }
+        });
+      }
+    );
+  
+    return () => unsubscribe();
+  }, []);
   useEffect(() => {
     // --- Arduino Event Handler ---
     if (lastArduinoEvent) {
