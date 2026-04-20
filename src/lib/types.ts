@@ -32,3 +32,9 @@ export type ArduinoStatus = {
   weight: number;
   machineState: DepositStep;
 };
+
+export type Device = {
+  id: string;
+  name: string;
+  status: boolean;
+};

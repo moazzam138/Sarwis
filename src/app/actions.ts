@@ -4,7 +4,7 @@ import { generateEnvironmentalInsight } from '@/ai/flows/generate-environmental-
 import type { DepositResult } from '@/lib/types';
 import QRCode from 'qrcode';
 import { db } from '@/firebase';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 
 async function generateQrDataUrl(payload: object): Promise<string> {
   try {
@@ -137,4 +137,17 @@ export async function generateTestQr(): Promise<DepositResult> {
         'Could not generate an insight at this time. But every piece of recycled waste helps our planet!',
     };
   }
+}
+
+
+export async function toggleDeviceStatus(deviceId: string, currentStatus: boolean): Promise<void> {
+    const deviceRef = doc(db, 'devices', deviceId);
+    try {
+        await updateDoc(deviceRef, {
+            status: !currentStatus
+        });
+    } catch (e) {
+        console.error('Error updating device status:', e);
+        throw new Error('Failed to update device status.');
+    }
 }

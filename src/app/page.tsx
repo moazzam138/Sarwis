@@ -17,8 +17,8 @@ import { useArduino } from "@/hooks/use-arduino";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { DepositStep, DepositResult, ArduinoStatus } from "@/lib/types";
-import { processDeposit, generateTestQr } from "@/app/actions";
+import type { DepositStep, DepositResult, ArduinoStatus, Device } from "@/lib/types";
+import { processDeposit, generateTestQr, toggleDeviceStatus } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 import { QRDisplay } from "@/components/qr-display";
 import { Dashboard } from "@/components/dashboard";
@@ -117,6 +117,21 @@ function workflowReducer(state: State, action: Action): State {
 }
 
 export default function Home() {
+  const [devices, setDevices] = useState<Device[]>([]);
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, "devices"),
+      (snapshot) => {
+        const data = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Device[];
+        setDevices(data);
+      }
+    );
+  
+    return () => unsubscribe();
+  }, []);
   const [state, dispatch] = useReducer(workflowReducer, initialState);
   const { toast } = useToast();
   const {
@@ -151,6 +166,7 @@ export default function Home() {
       );
     }
   }, [state.error, toast]);
+  
 
   const handleGenerateTestQr = async () => {
     dispatch({ type: "SET_STEP", payload: "GENERATING_QR" });
@@ -451,6 +467,8 @@ export default function Home() {
             status={arduinoStatus}
             lastDeposit={lastDeposit}
             errorLog={errorLog}
+            devices={devices}
+            onToggleDevice={toggleDeviceStatus}
           />
         </div>
       </main>

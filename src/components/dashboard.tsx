@@ -7,19 +7,24 @@ import {
   CircleDot,
   Weight,
   Settings,
+  Power,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { ArduinoStatus, DepositResult } from "@/lib/types";
+import type { ArduinoStatus, DepositResult, Device } from "@/lib/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface DashboardProps {
   status: ArduinoStatus;
   lastDeposit: DepositResult | null;
   errorLog: string[];
+  devices: Device[];
+  onToggleDevice: (deviceId: string, currentStatus: boolean) => Promise<void>;
 }
 
-export function Dashboard({ status, lastDeposit, errorLog }: DashboardProps) {
+export function Dashboard({ status, lastDeposit, errorLog, devices, onToggleDevice }: DashboardProps) {
   const statusItems = [
     {
       icon: Cpu,
@@ -68,6 +73,33 @@ export function Dashboard({ status, lastDeposit, errorLog }: DashboardProps) {
               <Badge variant={item.variant as any}>{item.value}</Badge>
             </div>
           ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Power className="h-5 w-5" />
+            Device Control
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {devices && devices.length > 0 ? (
+            devices.map((device) => (
+              <div key={device.id} className="flex items-center justify-between">
+                <Label htmlFor={`device-toggle-${device.id}`} className="font-medium cursor-pointer">
+                  {device.name}
+                </Label>
+                <Switch
+                  id={`device-toggle-${device.id}`}
+                  checked={device.status}
+                  onCheckedChange={() => onToggleDevice(device.id, device.status)}
+                />
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground">No devices to display.</p>
+          )}
         </CardContent>
       </Card>
 
