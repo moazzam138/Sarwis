@@ -73,12 +73,21 @@ function workflowReducer(state: State, action: Action): State {
       switch (state.step) {
         case "WAITING_FOR_WASTE":
           if (action.payload.event === "WASTE_DETECTED") {
-            return {
-              ...state,
-              step: "WASTE_DETECTED",
-              irStatus: "Triggered",
-              weightAtDetection: action.payload.weight,
-            };
+            // Verification step: check weight immediately on IR detection
+            if (action.payload.weight > 10) { // Valid waste if over 10g
+              return {
+                ...state,
+                step: "WASTE_DETECTED",
+                irStatus: "Triggered",
+                weightAtDetection: action.payload.weight,
+              };
+            } else { // Invalid or no significant waste detected
+              return {
+                ...state,
+                step: "ERROR",
+                error: "No significant weight detected. Please place the item fully in the slot."
+              };
+            }
           }
           break;
         case "OPENING_LID":
