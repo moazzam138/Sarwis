@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useReducer } from "react";
+import Link from 'next/link';
 import { db } from "@/firebase";
 import { collection, onSnapshot } from "firebase/firestore";
 import {
@@ -12,6 +13,7 @@ import {
   Wind,
   Loader,
   TestTube2,
+  ScanLine,
 } from "lucide-react";
 import { useArduino } from "@/hooks/use-arduino";
 import { Button } from "@/components/ui/button";
@@ -410,6 +412,12 @@ export default function Home() {
           <h1 className="text-xl font-bold">Sarwis Control Panel</h1>
         </div>
         <div className="flex items-center gap-4">
+          <Button asChild variant="outline">
+              <Link href="/claim">
+                  <ScanLine />
+                  Claim Reward
+              </Link>
+          </Button>
           <div className="flex items-center space-x-2">
             <Switch id="developer-mode" checked={isDeveloperMode} onCheckedChange={setIsDeveloperMode} />
             <Label htmlFor="developer-mode" className="text-sm hidden sm:block">Developer Mode</Label>

@@ -4,7 +4,7 @@ import { generateEnvironmentalInsight } from '@/ai/flows/generate-environmental-
 import type { DepositResult } from '@/lib/types';
 import QRCode from 'qrcode';
 import { db } from '@/firebase';
-import { addDoc, collection, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp, doc, updateDoc, query, where, getDocs, limit } from 'firebase/firestore';
 
 async function generateQrDataUrl(payload: object): Promise<string> {
   try {
@@ -150,4 +150,42 @@ export async function toggleDeviceStatus(deviceId: string, currentStatus: boolea
         console.error('Error updating device status:', e);
         throw new Error('Failed to update device status.');
     }
+}
+
+export async function claimTransaction(transactionId: string): Promise<{ success: boolean; message: string }> {
+  if (!transactionId) {
+    return { success: false, message: "Transaction ID cannot be empty." };
+  }
+
+  const transactionsRef = collection(db, 'sarwis_transactions');
+  const q = query(transactionsRef, where("transactionId", "==", transactionId), limit(1));
+
+  try {
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      return { success: false, message: "Transaction not found." };
+    }
+
+    const transactionDoc = querySnapshot.docs[0];
+    const transactionData = transactionDoc.data();
+
+    if (transactionData.status === 'claimed') {
+      return { success: false, message: "This reward has already been claimed." };
+    }
+    
+    if (transactionData.status === 'unused') {
+      await updateDoc(transactionDoc.ref, {
+        status: 'claimed',
+        claimedAt: serverTimestamp()
+      });
+      return { success: true, message: `Success! ${transactionData.coins} coins have been credited.` };
+    }
+
+    return { success: false, message: `Transaction has an invalid status: ${transactionData.status}` };
+
+  } catch (error) {
+    console.error("Error claiming transaction:", error);
+    return { success: false, message: "An unexpected error occurred while claiming the reward." };
+  }
 }
